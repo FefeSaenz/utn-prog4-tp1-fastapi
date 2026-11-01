@@ -33,7 +33,14 @@ def delete_user(id: int) -> DeleteUserResponse:
     )
 
 
-@router.post("/user")
+@router.post("/user", status_code=status.HTTP_201_CREATED)
 def create_user(user: User) -> CreateUserResponse:
+    for existing_user in usuarios:
+        if existing_user.id == user.id:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Ya existe un usuario con ese id"
+            )
+
     usuarios.append(user)
     return CreateUserResponse(message="usuario creado")
