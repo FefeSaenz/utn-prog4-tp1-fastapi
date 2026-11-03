@@ -58,6 +58,20 @@ FastAPI autogenera la interfaz visual de pruebas basándose en los tipos de Pyda
 4. Completa los parámetros de consulta (query params) o el cuerpo de la petición (JSON body).
 5. Presiona **Execute** y evalúa los códigos HTTP de respuesta.
 
+## 📌 Endpoints de Usuarios
+
+| Método | Ruta | Descripción | Respuestas |
+|---|---|---|---|
+| `GET` | `/user` | Lista usuarios. Query param opcional `is_active` (`true`/`false`) para filtrar por estado. | 200 |
+| `POST` | `/user` | Crea un usuario (`id`, `name`, `is_active` opcional, por defecto `true`). | 201, 409 si el id ya existe, 422 |
+| `PUT` | `/user/{id}` | Reemplaza los datos del usuario (`name`, `is_active` opcional). El id no va en el body: se toma de la URL. | 200, 404 si no existe, 422 |
+| `DELETE` | `/user/{id}` | Elimina un usuario. | 200, 404 si no existe |
+
+Ejemplo de body para `PUT /user/1`:
+```json
+{ "name": "juan actualizado", "is_active": false }
+```
+
 ## 🔍 Lint y chequeo de tipos
 El proyecto incluye configuración local para dos herramientas:
 - **`setup.cfg`**: configuración de pycodestyle (chequeo de estilo PEP 8). Define `max-line-length = 130` y excluye `.venv` y `__pycache__` del análisis.
@@ -77,14 +91,12 @@ pyright
 - [x] ~~Alta y listado~~ (Implementación de HTTP 201 Created y protección 409 Conflict contra IDs duplicados).
 - [x] ~~Eliminar por id~~ (Implementación de HTTP 404 Not Found para IDs inexistentes).
 - [x] ~~Filtrar por estado~~ (Inyección de query param opcional `is_active` procesado vía List Comprehension).
+- [x] ~~Modificar~~ (Endpoint `PUT /user/{id}` que reemplaza integralmente el registro; el id se toma de la URL y responde HTTP 404 Not Found si no existe).
 
 **Entrega**
 - [x] ~~README con instrucciones de uso y arquitectura detallada.~~
 
 ## 🛠️ Próximos Pasos
-
-**Parte 1: Usuarios**
-- [ ] **Modificar:** Implementar endpoint PUT para actualizar integralmente el registro de un usuario.
 
 **Parte 2: Productos**
 - [ ] **Crear modelo base:** Estructurar `models/products.py` con atributos propios de negocio.

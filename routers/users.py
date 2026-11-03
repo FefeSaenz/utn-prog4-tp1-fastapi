@@ -4,6 +4,8 @@ from models.users import (
     GetUsersResponse,
     CreateUserResponse,
     DeleteUserResponse,
+    UpdateUserRequest,
+    UpdateUserResponse,
 )
 
 router = APIRouter()
@@ -51,3 +53,20 @@ def create_user(user: User) -> CreateUserResponse:
 
     usuarios.append(user)
     return CreateUserResponse(message="usuario creado")
+
+
+# PUT reemplaza el usuario completo; el id sale de la URL, no del body
+@router.put("/user/{id}")
+def update_user(id: int, datos: UpdateUserRequest) -> UpdateUserResponse:
+    for user in usuarios:
+        if user.id == id:
+            # Se modifica el usuario que ya está en la lista, campo por campo
+            user.name = datos.name
+            user.is_active = datos.is_active
+            return UpdateUserResponse(message="usuario actualizado")
+
+    # Si el for termina sin encontrarlo, el id no existe
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Usuario no encontrado"
+    )
