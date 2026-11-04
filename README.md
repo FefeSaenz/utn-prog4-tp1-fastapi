@@ -62,15 +62,34 @@ FastAPI autogenera la interfaz visual de pruebas basándose en los tipos de Pyda
 
 | Método | Ruta | Descripción | Respuestas |
 |---|---|---|---|
-| `GET` | `/user` | Lista usuarios. Query param opcional `is_active` (`true`/`false`) para filtrar por estado. | 200 |
+| `GET` | `/user` | Lista usuarios. Query param opcional `is_active` (`true`/`false`) para filtrar por estado. | 200, 422 si `is_active` no es booleano |
 | `POST` | `/user` | Crea un usuario (`id`, `name`, `is_active` opcional, por defecto `true`). | 201, 409 si el id ya existe, 422 |
 | `PUT` | `/user/{id}` | Reemplaza los datos del usuario (`name`, `is_active` opcional). El id no va en el body: se toma de la URL. | 200, 404 si no existe, 422 |
-| `DELETE` | `/user/{id}` | Elimina un usuario. | 200, 404 si no existe |
+| `DELETE` | `/user/{id}` | Elimina un usuario. | 200, 404 si no existe, 422 |
 
 Ejemplo de body para `PUT /user/1`:
 ```json
 { "name": "juan actualizado", "is_active": false }
 ```
+
+## 📦 Modelo de Productos (Parte 2)
+
+Entidad propia elegida para la Parte 2: **`Product`**, definida en `models/products.py` con 5 campos.
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | `int` | Identificador único del producto. |
+| `name` | `str` | Nombre del producto. |
+| `price` | `float` | Precio. |
+| `description` | `str` | Descripción del producto. |
+| `sku` | `str` | Código de stock (SKU). |
+
+Modelos auxiliares (mismo patrón que usuarios):
+- `UpdateProductRequest`: body del futuro `PUT`, con `name`, `price` y `description`. No incluye `id` (se toma de la URL) ni `sku`, así que esos dos campos no se modifican.
+- `GetProductsResponse`: respuesta del listado (`products: List[Product]`).
+- `CreateProductResponse`, `UpdateProductResponse` y `DeleteProductResponse`: respuestas con un `message`.
+
+> Los endpoints de productos (`routers/products.py`) todavía están en desarrollo.
 
 ## 🔍 Lint y chequeo de tipos
 El proyecto incluye configuración local para dos herramientas:
@@ -93,13 +112,15 @@ pyright
 - [x] ~~Filtrar por estado~~ (Inyección de query param opcional `is_active` procesado vía List Comprehension).
 - [x] ~~Modificar~~ (Endpoint `PUT /user/{id}` que reemplaza integralmente el registro; el id se toma de la URL y responde HTTP 404 Not Found si no existe).
 
+**Parte 2: Productos**
+- [x] ~~Crear modelo base~~ (`models/products.py` con la entidad `Product` de 5 campos y sus modelos de request/response).
+
 **Entrega**
 - [x] ~~README con instrucciones de uso y arquitectura detallada.~~
 
 ## 🛠️ Próximos Pasos
 
 **Parte 2: Productos**
-- [ ] **Crear modelo base:** Estructurar `models/products.py` con atributos propios de negocio.
 - [ ] **Crear (POST):** Endpoint de alta con validación de existencia previa.
 - [ ] **Listar (GET):** Retornar el catálogo completo en memoria.
 - [ ] **Obtener por id (GET):** Búsqueda puntual mediante Path Parameter.
