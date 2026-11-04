@@ -15,7 +15,7 @@ API REST desarrollada con **FastAPI** y **Pydantic** para la cátedra de Program
 El proyecto sigue una estructura modular para separar responsabilidades y facilitar su escalabilidad:
 - `main.py (Entrypoint)`: Punto de entrada de la aplicación. Inicializa la instancia de FastAPI y orquesta la inyección de los diferentes enrutadores mediante `app.include_router`.
 - `models/ (Data Layer & Schemas)`: Centraliza las clases de Pydantic (`BaseModel`). Define el contrato estricto de entrada y salida de la API (Request/Response), actuando como escudo validador antes de que los datos toquen la lógica de negocio.
-- `routers/ (Controllers)`: Aísla la lógica de las rutas HTTP (`@router.get`, `@router.post`, etc.) agrupadas por entidad. Actualmente también gestiona el estado en memoria (`list[User]`) como fuente de verdad temporal.
+- `routers/ (Controllers)`: Aísla la lógica de las rutas HTTP (`@router.get`, `@router.post`, etc.) agrupadas por entidad. Cada router también gestiona su estado en memoria (`list[User]` en `users.py`, `list[Product]` en `products.py`) como fuente de verdad temporal.
 - `In-Memory Persistence (Pattern)`: Implementación de almacenamiento efímero usando listas nativas de Python (List Comprehensions y Mutaciones). Ideal para el cumplimiento de la consigna actual sin dependencias externas de bases de datos.
 - `Fail-Fast Validation (Pattern)`: Aprovechamiento del motor de Pydantic para rechazar requests malformadas automáticamente (422 Unprocessable Entity) sin necesidad de escribir validaciones manuales (`if/else`) en los endpoints.
 
@@ -72,9 +72,9 @@ Ejemplo de body para `PUT /user/1`:
 { "name": "juan actualizado", "is_active": false }
 ```
 
-## 📦 Modelo de Productos (Parte 2)
+## 📦 Endpoints de Productos (Parte 2)
 
-Entidad propia elegida para la Parte 2: **`Product`**, definida en `models/products.py` con 5 campos.
+Entidad propia elegida para la Parte 2: **`Product`** (`models/products.py`), con 5 campos:
 
 | Campo | Tipo | Descripción |
 |---|---|---|
@@ -84,12 +84,25 @@ Entidad propia elegida para la Parte 2: **`Product`**, definida en `models/produ
 | `description` | `str` | Descripción del producto. |
 | `sku` | `str` | Código de stock (SKU). |
 
-Modelos auxiliares (mismo patrón que usuarios):
-- `UpdateProductRequest`: body del futuro `PUT`, con `name`, `price` y `description`. No incluye `id` (se toma de la URL) ni `sku`, así que esos dos campos no se modifican.
-- `GetProductsResponse`: respuesta del listado (`products: List[Product]`).
-- `CreateProductResponse`, `UpdateProductResponse` y `DeleteProductResponse`: respuestas con un `message`.
+| Método | Ruta | Descripción | Respuestas |
+|---|---|---|---|
+| `GET` | `/product` | Lista productos. Query param opcional `name` para buscar por nombre (coincidencia parcial, sin distinguir mayúsculas). | 200 |
+| `GET` | `/product/{id}` | Obtiene un producto por id. | 200, 404 si no existe, 422 |
+| `POST` | `/product` | Crea un producto (los 5 campos son obligatorios). | 201, 409 si el id ya existe, 422 |
+| `PUT` | `/product/{id}` | Reemplaza `name`, `price` y `description`. El `id` se toma de la URL y el `sku` no se modifica. | 200, 404 si no existe, 422 |
+| `DELETE` | `/product/{id}` | Elimina un producto. | 200, 404 si no existe, 422 |
 
-> Los endpoints de productos (`routers/products.py`) todavía están en desarrollo.
+Ejemplos:
+```bash
+GET /product?name=remera   # devuelve "Remera Negra" y "Remera Blanca"
+```
+```json
+POST /product
+{ "id": 5, "name": "Buzo Gris", "price": 40000, "description": "Frisa", "sku": "SKU005" }
+
+PUT /product/5
+{ "name": "Buzo Negro", "price": 42000.5, "description": "Frisa premium" }
+```
 
 ## 🔍 Lint y chequeo de tipos
 El proyecto incluye configuración local para dos herramientas:
@@ -114,16 +127,12 @@ pyright
 
 **Parte 2: Productos**
 - [x] ~~Crear modelo base~~ (`models/products.py` con la entidad `Product` de 5 campos y sus modelos de request/response).
+- [x] ~~Crear (POST)~~ (HTTP 201 Created y 409 Conflict contra IDs duplicados).
+- [x] ~~Listar (GET)~~ (Catálogo completo en memoria).
+- [x] ~~Obtener por id (GET)~~ (Path parameter `{id}` con HTTP 404 Not Found si no existe).
+- [x] ~~Modificar (PUT)~~ (Actualiza `name`, `price` y `description`; el `id` sale de la URL y el `sku` no cambia).
+- [x] ~~Eliminar (DELETE)~~ (HTTP 404 Not Found para IDs inexistentes).
+- [x] ~~Buscar o filtrar (GET)~~ (Query param opcional `name` con búsqueda parcial e insensible a mayúsculas vía List Comprehension).
 
 **Entrega**
 - [x] ~~README con instrucciones de uso y arquitectura detallada.~~
-
-## 🛠️ Próximos Pasos
-
-**Parte 2: Productos**
-- [ ] **Crear (POST):** Endpoint de alta con validación de existencia previa.
-- [ ] **Listar (GET):** Retornar el catálogo completo en memoria.
-- [ ] **Obtener por id (GET):** Búsqueda puntual mediante Path Parameter.
-- [ ] **Modificar (PUT):** Actualización de propiedades del producto.
-- [ ] **Eliminar (DELETE):** Baja del catálogo.
-- [ ] **Buscar o filtrar (GET):** Implementar query params para refinar la búsqueda del listado principal.
